@@ -73,6 +73,7 @@ body {
   background-size: 18px 18px;
 }
 
+@layer components {
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -150,6 +151,8 @@ body {
   scrollbar-width: thin;
   scrollbar-color: rgb(27 27 31 / 0.15) transparent;
 }
+
+} /* end @layer components */
 
 /* Latin codes/IDs stay LTR inside Arabic text */
 .ltr-nums {

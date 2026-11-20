@@ -141,6 +141,20 @@ export default function SearchPage() {
         </div>
       ) : !hasData ? (
         <NoDataState />
+      ) : q && results.length === 0 ? (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card mx-auto flex max-w-md flex-col items-center gap-2 px-6 py-12 text-center"
+        >
+          <Rabbit size={96} float />
+          <div className="mt-2 text-lg font-extrabold">{t("noResults")}</div>
+          <div className="text-sm text-ink-2">{t("noResultsHint")}</div>
+          <button onClick={() => setQ("")} className="btn btn-soft mt-3">
+            <X className="size-4" />
+            {t("clearSearch")}
+          </button>
+        </motion.div>
       ) : q ? (
         <div className="grid items-start gap-4 lg:grid-cols-[380px_1fr]">
           {/* results */}

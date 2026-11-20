@@ -2,166 +2,141 @@
 
 import { useId } from "react";
 import type { Agent } from "@/lib/types";
-import { cn, hashString } from "@/lib/utils";
-
-const SKIN = ["#F7D7BA", "#EFC4A0", "#E3AE85", "#CF9469", "#B57A52"];
-const HAIR = ["#2B1D16", "#3B2A20", "#1E1E22", "#5A3B28", "#70492D"];
-const HIJAB = ["#1F2A44", "#7A2E3F", "#2F4F4F", "#9A6A61", "#4A4A6A", "#C29B78", "#0F5257"];
-const BG: [string, string][] = [
-  ["#FFE0E1", "#FFB8BE"],
-  ["#FFE9D6", "#FFC79E"],
-  ["#FDE2F1", "#F8B4D9"],
-  ["#E6EEFF", "#BCD0FF"],
-  ["#E3F7EE", "#A9E6CB"],
-  ["#F1E8FF", "#D3BDFF"],
-];
+import { cn } from "@/lib/utils";
 
 const STATUS_RING = { active: "#17a36b", leave: "#f2a516", off: "#8a8a96" };
 
+const SKIN = "#EDC3A0";
+const SKIN_SHADE = "#D9A47F";
+const BLAZER = "#1F2733";
+const BLAZER_DARK = "#141A23";
+
 interface Props {
-  agent: Pick<Agent, "id" | "name" | "gender" | "hijab" | "status">;
+  agent: Pick<Agent, "name" | "gender" | "status"> & Partial<Pick<Agent, "id">>;
   size?: number;
   className?: string;
   showStatus?: boolean;
 }
 
-/**
- * Generated illustrated avatar: every agent gets a stable look (skin, hair, colours) derived
- * from their ID, wearing the red J&T hoodie with the rabbit-ear hood.
- */
+/** Two formal avatars — one male, one female — in J&T colours. */
 export function AgentAvatar({ agent, size = 56, className, showStatus = true }: Props) {
   const uid = useId().replace(/:/g, "");
-  const h = hashString(agent.id + agent.name);
-  const skin = SKIN[h % SKIN.length];
-  const hair = HAIR[(h >>> 3) % HAIR.length];
-  const hijabColor = HIJAB[(h >>> 5) % HIJAB.length];
-  const [bg1, bg2] = BG[(h >>> 7) % BG.length];
-  const maleStyle = (h >>> 9) % 3;
-  const femaleStyle = (h >>> 11) % 2;
   const female = agent.gender === "female";
-  const hijab = female && agent.hijab !== false;
 
   return (
     <div className={cn("relative shrink-0", className)} style={{ width: size, height: size }}>
       <svg viewBox="0 0 120 120" width={size} height={size} role="img" aria-label={agent.name}>
         <defs>
-          <linearGradient id={`bg${uid}`} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor={bg1} />
-            <stop offset="1" stopColor={bg2} />
+          <linearGradient id={`bg${uid}`} x1="0" y1="0" x2="0" y2="1">
+            {female ? (
+              <>
+                <stop offset="0" stopColor="#FCEEF0" />
+                <stop offset="1" stopColor="#F3CDD3" />
+              </>
+            ) : (
+              <>
+                <stop offset="0" stopColor="#EEF2F7" />
+                <stop offset="1" stopColor="#CBD5E1" />
+              </>
+            )}
           </linearGradient>
-          <linearGradient id={`hood${uid}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#F0343C" />
-            <stop offset="1" stopColor="#B8121A" />
+          <linearGradient id={`blz${uid}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#2B3543" />
+            <stop offset="1" stopColor={BLAZER} />
           </linearGradient>
-          <radialGradient id={`face${uid}`} cx="0.4" cy="0.35" r="0.8">
-            <stop offset="0" stopColor="#fff" stopOpacity="0.35" />
+          <linearGradient id={`hij${uid}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#9B2733" />
+            <stop offset="1" stopColor="#7A1C27" />
+          </linearGradient>
+          <radialGradient id={`face${uid}`} cx="0.42" cy="0.35" r="0.75">
+            <stop offset="0" stopColor="#fff" stopOpacity="0.28" />
             <stop offset="1" stopColor="#fff" stopOpacity="0" />
           </radialGradient>
           <clipPath id={`clip${uid}`}>
             <circle cx="60" cy="60" r="60" />
           </clipPath>
         </defs>
+
         <g clipPath={`url(#clip${uid})`}>
           <rect width="120" height="120" fill={`url(#bg${uid})`} />
-          {/* speed stripes */}
-          <g stroke="#fff" strokeOpacity="0.55" strokeWidth="3" strokeLinecap="round">
-            <line x1="88" y1="20" x2="110" y2="20" />
-            <line x1="94" y1="28" x2="112" y2="28" />
-            <line x1="100" y1="36" x2="114" y2="36" />
-          </g>
 
-          {/* rabbit-ear hood */}
-          <g transform="rotate(-14 44 30)">
-            <ellipse cx="44" cy="22" rx="7.5" ry="19" fill="#fff" />
-            <ellipse cx="44" cy="23" rx="3.6" ry="13" fill="#FFB3BC" />
-          </g>
-          <g transform="rotate(14 76 30)">
-            <ellipse cx="76" cy="22" rx="7.5" ry="19" fill="#fff" />
-            <ellipse cx="76" cy="23" rx="3.6" ry="13" fill="#FFB3BC" />
-          </g>
+          {/* blazer */}
+          <path d="M6 124 C6 101 28 90 60 90 C92 90 114 101 114 124 Z" fill={`url(#blz${uid})`} />
 
-          {/* long hair behind */}
-          {female && !hijab && (
-            <path
-              d={
-                femaleStyle === 0
-                  ? "M34 58 C30 30 46 24 60 24 C76 24 90 32 86 58 L90 96 C80 100 72 94 70 92 L50 92 C48 94 40 100 30 96 Z"
-                  : "M36 58 C32 32 46 25 60 25 C75 25 88 33 84 58 L84 80 C76 84 44 84 36 80 Z"
-              }
-              fill={hair}
-            />
-          )}
-
-          {/* hijab back */}
-          {hijab && (
-            <path d="M60 24 C36 24 30 46 32 66 C34 86 44 96 60 98 C76 96 86 86 88 66 C90 46 84 24 60 24Z" fill={hijabColor} />
-          )}
-
-          {/* hoodie */}
-          <path d="M10 124 C10 100 32 88 60 88 C88 88 110 100 110 124 Z" fill={`url(#hood${uid})`} />
-          <path d="M42 90 C46 100 54 104 60 104 C66 104 74 100 78 90" fill="none" stroke="#8E0C12" strokeOpacity="0.5" strokeWidth="2.5" />
-          {/* drawstrings */}
-          <line x1="54" y1="102" x2="53" y2="114" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
-          <line x1="66" y1="102" x2="67" y2="114" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
-          <text x="77" y="113" fontSize="8" fontWeight="900" fill="#fff" fontFamily="Arial, sans-serif" fontStyle="italic" direction="ltr" style={{ unicodeBidi: "bidi-override" }}>
-            J&amp;T
-          </text>
-
-          {/* neck */}
-          {!hijab && <rect x="52" y="72" width="16" height="20" rx="6" fill={skin} />}
-          {!hijab && <rect x="52" y="78" width="16" height="6" fill="#000" opacity="0.07" />}
-
-          {/* hijab drape */}
-          {hijab && <path d="M38 82 C44 100 52 104 60 104 C68 104 76 100 82 82 C74 90 68 92 60 92 C52 92 46 90 38 82Z" fill={hijabColor} />}
-
-          {/* ears */}
-          {!hijab && (
+          {female ? (
             <>
-              <ellipse cx="38" cy="59" rx="4.5" ry="6" fill={skin} />
-              <ellipse cx="82" cy="59" rx="4.5" ry="6" fill={skin} />
+              {/* blouse */}
+              <path d="M48 92 L60 118 L72 92 Z" fill="#F8FAFC" />
+              {/* lapels */}
+              <path d="M46 92 L38 99 L55 118 L58 110 Z" fill={BLAZER_DARK} />
+              <path d="M74 92 L82 99 L65 118 L62 110 Z" fill={BLAZER_DARK} />
+              {/* hijab */}
+              <path d="M60 21 C37 21 31 42 32 62 C33 81 42 93 60 97 C78 93 87 81 88 62 C89 42 83 21 60 21 Z" fill={`url(#hij${uid})`} />
+              <path d="M35 74 C37 99 47 108 60 110 C73 108 83 99 85 74 C79 90 70 97 60 97 C50 97 41 90 35 74 Z" fill="#6E1822" />
+              <path d="M60 97 C55 102 52 106 50 110" stroke="#5E141D" strokeWidth="1.2" fill="none" opacity="0.6" />
+              {/* face */}
+              <ellipse cx="60" cy="59" rx="18" ry="21.5" fill={SKIN} />
+              <ellipse cx="60" cy="59" rx="18" ry="21.5" fill={`url(#face${uid})`} />
+              {/* under-scarf band */}
+              <path d="M41.5 51 C44 39 51 35.5 60 35.5 C69 35.5 76 39 78.5 51 C72 44 66 41.5 60 41.5 C54 41.5 48 44 41.5 51 Z" fill="#B53340" />
+              {/* brooch */}
+              <circle cx="72" cy="94" r="2.2" fill="#F4C95D" />
+            </>
+          ) : (
+            <>
+              {/* shirt */}
+              <path d="M47 91 L60 116 L73 91 Z" fill="#FFFFFF" />
+              {/* collar */}
+              <path d="M47 91 L54 102 L60 93 Z" fill="#E5E9F0" />
+              <path d="M73 91 L66 102 L60 93 Z" fill="#E5E9F0" />
+              {/* tie */}
+              <path d="M57 94 L63 94 L62 99.5 L58 99.5 Z" fill="#B8121A" />
+              <path d="M58 99.5 L62 99.5 L65.5 115 L60 121 L54.5 115 Z" fill="#E3222B" />
+              {/* lapels */}
+              <path d="M45 91 L37 99 L54 118 L57 108 Z" fill={BLAZER_DARK} />
+              <path d="M75 91 L83 99 L66 118 L63 108 Z" fill={BLAZER_DARK} />
+              {/* pocket square */}
+              <path d="M84 104 L92 104 L90 108 L86 108 Z" fill="#E3222B" />
+              {/* neck */}
+              <path d="M51 72 L69 72 L69 90 C66 95 54 95 51 90 Z" fill={SKIN_SHADE} />
+              {/* ears */}
+              <ellipse cx="38.5" cy="58" rx="4" ry="5.5" fill={SKIN_SHADE} />
+              <ellipse cx="81.5" cy="58" rx="4" ry="5.5" fill={SKIN_SHADE} />
+              {/* face */}
+              <ellipse cx="60" cy="56" rx="21" ry="24" fill={SKIN} />
+              <ellipse cx="60" cy="56" rx="21" ry="24" fill={`url(#face${uid})`} />
+              {/* hair: neat side part */}
+              <path
+                d="M38.5 53 C36 33 47 25 61 25 C75 25 85.5 33 82 53 C81 46 78.5 41.5 74 39 C66 42 52 41.5 44 44.5 C41 46.5 39.5 49.5 38.5 53 Z"
+                fill="#2A211D"
+              />
+              <path d="M50 30 C56 33 63 34 71 33" stroke="#3A2E28" strokeWidth="1.4" fill="none" strokeLinecap="round" />
             </>
           )}
 
-          {/* face */}
-          <ellipse cx="60" cy="58" rx={hijab ? 19 : 22} ry={hijab ? 22 : 25} fill={skin} />
-          <ellipse cx="60" cy="58" rx={hijab ? 19 : 22} ry={hijab ? 22 : 25} fill={`url(#face${uid})`} />
-
-          {/* hair front */}
-          {!female && maleStyle !== 2 && (
-            <path
-              d={
-                maleStyle === 0
-                  ? "M37 54 C34 32 48 26 61 27 C76 28 86 36 83 54 C79 43 71 39 60 39 C50 39 41 43 37 54Z"
-                  : "M37 55 C33 30 50 22 64 25 C70 22 80 26 80 32 C88 38 86 48 83 55 C79 44 72 38 61 40 C50 41 42 45 37 55Z"
-              }
-              fill={hair}
-            />
-          )}
-          {!female && maleStyle === 2 && (
+          {/* features */}
+          <path d="M48 52.5 Q52.5 50.5 56.5 52" stroke="#2A211D" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+          <path d="M63.5 52 Q67.5 50.5 72 52.5" stroke="#2A211D" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+          <ellipse cx="52.5" cy={female ? 59 : 58} rx="2.3" ry="2.6" fill="#1F1A17" />
+          <ellipse cx="67.5" cy={female ? 59 : 58} rx="2.3" ry="2.6" fill="#1F1A17" />
+          <circle cx="53.2" cy={female ? 58.2 : 57.2} r="0.7" fill="#fff" />
+          <circle cx="68.2" cy={female ? 58.2 : 57.2} r="0.7" fill="#fff" />
+          {female && (
             <>
-              <path d="M37 54 C34 33 48 27 61 28 C76 29 86 37 83 54 C80 44 71 40 60 40 C50 40 41 44 37 54Z" fill={hair} />
-              <path d="M38 60 C40 80 51 86 60 86 C69 86 80 80 82 60 C78 72 71 77 60 77 C49 77 42 72 38 60Z" fill={hair} />
+              <path d="M49.5 57 L48.2 55.8" stroke="#1F1A17" strokeWidth="1" strokeLinecap="round" />
+              <path d="M70.5 57 L71.8 55.8" stroke="#1F1A17" strokeWidth="1" strokeLinecap="round" />
             </>
           )}
-          {female && !hijab && (
-            <path d="M38 54 C40 34 54 30 64 31 C76 33 83 42 82 54 C74 45 63 41 53 45 C47 47 42 50 38 54Z" fill={hair} />
-          )}
-          {hijab && <path d="M41 50 C44 38 52 35 60 35 C68 35 76 38 79 50 C72 43 66 41 60 41 C54 41 48 43 41 50Z" fill={hijabColor} />}
-
-          {/* eyes */}
-          <ellipse cx="52" cy="59" rx="2.8" ry="3.3" fill="#1B1B1F" />
-          <ellipse cx="68" cy="59" rx="2.8" ry="3.3" fill="#1B1B1F" />
-          <circle cx="53" cy="58" r="0.9" fill="#fff" />
-          <circle cx="69" cy="58" r="0.9" fill="#fff" />
-          {/* brows */}
-          <path d="M47 52 Q52 49.5 56 51.5" stroke={female ? hair : "#2B1D16"} strokeWidth="1.8" fill="none" strokeLinecap="round" opacity={hijab ? 0.8 : 1} />
-          <path d="M64 51.5 Q68 49.5 73 52" stroke={female ? hair : "#2B1D16"} strokeWidth="1.8" fill="none" strokeLinecap="round" opacity={hijab ? 0.8 : 1} />
-          {/* blush */}
-          <ellipse cx="46.5" cy="67" rx="4.5" ry="2.6" fill="#FF7A8A" opacity="0.35" />
-          <ellipse cx="73.5" cy="67" rx="4.5" ry="2.6" fill="#FF7A8A" opacity="0.35" />
-          {/* smile */}
-          <path d="M54.5 68 Q60 73.5 65.5 68" stroke="#7A2E2E" strokeWidth="2" fill="none" strokeLinecap="round" />
+          <path d={female ? "M60 61 L58.6 66.5 L61 66.8" : "M60 60 L58.4 66 L61 66.3"} stroke={SKIN_SHADE} strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d={female ? "M55 71 Q60 74.5 65 71" : "M54.5 70.5 Q60 74 65.5 70.5"}
+            stroke={female ? "#B4535D" : "#8A4B3C"}
+            strokeWidth="1.9"
+            fill="none"
+            strokeLinecap="round"
+          />
         </g>
+        <circle cx="60" cy="60" r="59.25" fill="none" stroke="#000" strokeOpacity="0.06" strokeWidth="1.5" />
       </svg>
       {showStatus && (
         <span
