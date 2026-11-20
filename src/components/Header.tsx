@@ -23,7 +23,7 @@ export function Header() {
   return (
     <>
       {!firebaseEnabled && (
-        <div className="bg-ink px-4 py-1.5 text-center text-xs font-semibold text-white/85">{t("demoMode")}</div>
+        <div className="bg-jt-50 px-4 py-1.5 text-center text-xs font-bold text-jt-700">{t("demoMode")}</div>
       )}
       <header className="sticky top-0 z-40 border-b border-line/70 bg-surface/85 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4">

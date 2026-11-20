@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Building2, ChevronLeft, ChevronRight, Clock, Search, Users, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, Search, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { ClientProfileCard } from "@/components/ClientProfileCard";
@@ -92,18 +92,17 @@ export default function SearchPage() {
   return (
     <div className="space-y-6">
       {/* HERO */}
-      <section className="speed-stripes relative overflow-hidden rounded-[2rem] bg-linear-to-br from-jt via-jt-600 to-jt-700 px-5 pb-8 pt-8 text-white shadow-[var(--shadow-lift)] sm:px-10 sm:pt-10">
-        <div className="pointer-events-none absolute -bottom-24 -start-16 size-72 rounded-full bg-white/10 blur-2xl" />
-        <div className="pointer-events-none absolute end-0 top-0 h-1 w-1/3 overflow-hidden">
-          <div className="animate-dash h-full w-1/3 rounded-full bg-white/60" />
+      <section className="surface-glow relative overflow-hidden rounded-[2rem] px-5 pb-8 pt-8 shadow-[var(--shadow-lift)] sm:px-10 sm:pt-10">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px overflow-hidden">
+          <div className="animate-dash h-full w-1/3 bg-linear-to-r from-transparent via-white/80 to-transparent" />
         </div>
         <div className="relative grid items-end gap-6 md:grid-cols-[1fr_auto]">
           <div className="max-w-2xl">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-bold backdrop-blur">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-bold text-white ring-1 ring-white/20">
               <span className="size-1.5 animate-pulse rounded-full bg-white" />
               {t("appName")} · {store.clients.length ? `${fmt(store.clients.length, lang)} ${t("clients")}` : t("loading")}
             </div>
-            <h1 className="text-3xl font-black leading-tight sm:text-5xl">{t("tagline")}</h1>
+            <h1 className="text-glow text-3xl font-black leading-tight sm:text-5xl">{t("tagline")}</h1>
 
             <div className="relative mt-6">
               <Search className="pointer-events-none absolute start-4 top-1/2 size-5 -translate-y-1/2 text-ink-3" />
@@ -114,7 +113,7 @@ export default function SearchPage() {
                 onChange={(e) => setQ(e.target.value)}
                 onKeyDown={onKeyDown}
                 placeholder={t("searchPlaceholder")}
-                className="h-16 w-full rounded-2xl border-0 bg-white pe-12 ps-12 text-base font-semibold text-ink shadow-2xl outline-none ring-4 ring-white/20 placeholder:font-medium placeholder:text-ink-3 focus:ring-white/40 sm:text-lg"
+                className="h-16 w-full rounded-2xl border-0 bg-white pe-12 ps-12 text-base font-semibold text-ink shadow-2xl outline-none ring-4 ring-white/25 placeholder:font-medium placeholder:text-ink-3 focus:ring-white/45 sm:text-lg"
                 aria-label={t("search")}
                 role="combobox"
                 aria-expanded={results.length > 0}
@@ -128,10 +127,36 @@ export default function SearchPage() {
                 <kbd className="absolute end-4 top-1/2 hidden -translate-y-1/2 rounded-lg border border-line px-2 py-0.5 text-xs font-bold text-ink-3 sm:block">/</kbd>
               )}
             </div>
-            <p className="mt-2.5 text-xs font-semibold text-white/70">{t("searchHint")} · ↑ ↓</p>
+            <p className="mt-2.5 text-xs font-semibold text-white/75">{t("searchHint")} · ↑ ↓</p>
           </div>
           <Rabbit size={170} float className="hidden md:block" />
         </div>
+
+        {store.clients.length > 0 && (
+          <div className="relative mt-8 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch rounded-2xl bg-white/10 py-5 ring-1 ring-white/15">
+            {[
+              { label: t("clients"), value: store.clients.length },
+              { label: t("agents"), value: store.agents.length },
+              { label: t("branches"), value: store.branches.length },
+            ].flatMap((s, i) => [
+              ...(i ? [<div key={"d" + i} className="divider-glow" />] : []),
+              <motion.div
+                key={s.label}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 + i * 0.08 }}
+                className="flex flex-col items-center text-center"
+              >
+                <div className="flex items-start" dir="ltr">
+                  <span className="ltr-nums text-glow text-3xl font-black leading-none sm:text-5xl">{fmt(s.value, lang)}</span>
+                  <span className="ms-0.5 text-xl font-black leading-none text-white/70 sm:text-3xl">+</span>
+                </div>
+                <div className="mt-2 text-xs font-bold text-white/80 sm:text-sm">{s.label}</div>
+                <span className="mt-3 h-0.5 w-7 rounded-full bg-white/70" />
+              </motion.div>,
+            ])}
+          </div>
+        )}
       </section>
 
       {store.loading ? (
@@ -212,31 +237,6 @@ export default function SearchPage() {
         </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-3">
-          {/* quick stats */}
-          <div className="grid grid-cols-3 gap-3 lg:col-span-3">
-            {[
-              { label: t("clients"), value: store.clients.length, icon: Search },
-              { label: t("agents"), value: store.agents.length, icon: Users },
-              { label: t("branches"), value: store.branches.length, icon: Building2 },
-            ].map((s, i) => (
-              <motion.div
-                key={s.label}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06 }}
-                className="card flex items-center gap-3 p-4"
-              >
-                <div className="hidden size-11 items-center justify-center rounded-2xl bg-jt-50 text-jt sm:flex">
-                  <s.icon className="size-5" />
-                </div>
-                <div>
-                  <div className="ltr-nums text-2xl font-black">{fmt(s.value, lang)}</div>
-                  <div className="text-xs font-bold text-ink-3">{s.label}</div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
           <div className="card p-4 lg:col-span-2">
             <div className="mb-3 flex items-center gap-2 text-sm font-extrabold">
               <Clock className="size-4 text-jt" />

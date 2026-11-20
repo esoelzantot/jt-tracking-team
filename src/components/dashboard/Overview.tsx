@@ -108,7 +108,7 @@ export function Overview({ go }: { go: (tab: string, filter?: string) => void })
                     {a.status !== "active" && <StatusBadge status={a.status} />}
                   </div>
                   <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-bg">
-                    <div className="h-full rounded-full bg-ink" style={{ width: `${(n / maxLoad) * 100}%` }} />
+                    <div className="h-full rounded-full bg-jt" style={{ width: `${(n / maxLoad) * 100}%` }} />
                   </div>
                 </div>
                 <span className="ltr-nums w-8 text-end text-sm font-black">{n}</span>

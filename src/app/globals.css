@@ -54,18 +54,35 @@ body {
   color: white;
 }
 
-/* The "speed stripes" from the J&T mark, reused as a decorative motif */
-.speed-stripes {
+/* J&T red surface: simple brand gradient with a faint fading dot grid */
+.surface-glow {
   position: relative;
   isolation: isolate;
+  color: #fff;
+  background: linear-gradient(135deg, #e3222b 0%, #cf1a22 55%, #b3121a 100%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
 }
-.speed-stripes::before {
+.surface-glow::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-image: repeating-linear-gradient(-12deg, transparent 0 18px, rgb(255 255 255 / 0.07) 18px 20px);
+  background-image: radial-gradient(rgb(255 255 255 / 0.16) 1px, transparent 1.2px);
+  background-size: 16px 16px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+}
+
+/* Big numbers / titles on the red surface */
+.text-glow {
+  color: #fff;
+}
+
+/* Vertical divider that fades in white in the middle */
+.divider-glow {
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgb(255 255 255 / 0.45), transparent);
 }
 
 .dot-grid {

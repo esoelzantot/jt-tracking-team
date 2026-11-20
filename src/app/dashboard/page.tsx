@@ -123,7 +123,7 @@ function Login() {
 
   return (
     <div className="mx-auto grid max-w-4xl overflow-hidden rounded-[2rem] bg-surface shadow-[var(--shadow-lift)] md:grid-cols-2">
-      <div className="speed-stripes relative hidden flex-col items-center justify-center gap-4 bg-linear-to-br from-jt to-jt-700 p-10 text-white md:flex">
+      <div className="surface-glow relative hidden flex-col items-center justify-center gap-4 p-10 md:flex">
         <Rabbit size={190} float />
         <div className="text-center text-2xl font-black">{t("appName")}</div>
       </div>

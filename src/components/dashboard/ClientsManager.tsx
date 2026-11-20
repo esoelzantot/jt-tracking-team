@@ -101,19 +101,19 @@ export function ClientsManager({ notify, initialFilter }: { notify: (m: string) 
       </div>
 
       {sel.size > 0 && (
-        <div className="flex flex-col gap-2 rounded-2xl bg-ink p-3 text-white sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-2 rounded-2xl bg-jt-50 p-3 text-ink ring-1 ring-jt/20 sm:flex-row sm:items-center">
           <span className="text-sm font-bold">
             <span className="ltr-nums">{sel.size}</span> {t("selected")}
           </span>
-          <select value={bulkField} onChange={(e) => setBulkField(e.target.value as typeof bulkField)} className="input !w-auto !bg-white/10 !text-white !border-white/20">
-            <option className="text-ink" value="agentId">{t("accountManager")}</option>
-            <option className="text-ink" value="supportAgentId">{t("supportAgent")}</option>
+          <select value={bulkField} onChange={(e) => setBulkField(e.target.value as typeof bulkField)} className="input !w-auto">
+            <option value="agentId">{t("accountManager")}</option>
+            <option value="supportAgentId">{t("supportAgent")}</option>
           </select>
-          <AgentSelect value={bulkAgent} onChange={setBulkAgent} className="input sm:!w-72 !text-ink" />
+          <AgentSelect value={bulkAgent} onChange={setBulkAgent} className="input sm:!w-72" />
           <button onClick={bulk} disabled={busy} className="btn btn-primary">
             {t("assign")}
           </button>
-          <button onClick={() => setSel(new Set())} className="btn text-white/70 hover:text-white sm:ms-auto">
+          <button onClick={() => setSel(new Set())} className="btn btn-ghost sm:ms-auto">
             {t("cancel")}
           </button>
         </div>

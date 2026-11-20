@@ -31,6 +31,8 @@ export function CopyButton({ value, className, label }: { value: string; classNa
     <button
       type="button"
       onClick={(e) => {
+        // Works inside links/cards without triggering their navigation.
+        e.preventDefault();
         e.stopPropagation();
         navigator.clipboard?.writeText(value).then(() => {
           setDone(true);
@@ -175,7 +177,7 @@ export function Toast({ message, onDone }: { message: string | null; onDone: () 
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 30, opacity: 0 }}
-          className="fixed bottom-6 left-1/2 z-[60] -translate-x-1/2 rounded-2xl bg-ink px-4 py-2.5 text-sm font-bold text-white shadow-xl"
+          className="fixed bottom-6 left-1/2 z-[60] -translate-x-1/2 rounded-2xl bg-surface px-4 py-2.5 text-sm font-bold text-ink shadow-xl ring-1 ring-line border-s-4 border-jt"
         >
           {message}
         </motion.div>
