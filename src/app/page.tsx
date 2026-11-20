@@ -10,7 +10,7 @@ import { useI18n } from "@/lib/i18n";
 import { buildIndex } from "@/lib/search";
 import { useStore } from "@/lib/store";
 import type { Client } from "@/lib/types";
-import { cn, fmt, resolveOwnership } from "@/lib/utils";
+import { cn, coverageOf, fmt, resolveOwnership } from "@/lib/utils";
 
 const RECENT_KEY = "jt-hub:recent";
 
@@ -267,16 +267,31 @@ export default function SearchPage() {
             {away.length ? (
               <ul className="space-y-2">
                 {away.map((a) => {
-                  const cover = a.coverAgentId ? store.agentById.get(a.coverAgentId) : undefined;
+                  const cov = coverageOf(a.id, store);
                   return (
                     <li key={a.id} className="flex items-center gap-2.5">
                       <AgentAvatar agent={a} size={36} />
                       <div className="min-w-0 flex-1 text-sm">
                         <div className="truncate font-bold">{a.name}</div>
                         <div className="truncate text-xs text-ink-3">
-                          {t("coveredBy")}: {cover?.name ?? "—"}
+                          {cov.groups.length > 1 ? (
+                            <>
+                              {t("splitAcross")} <span className="ltr-nums">{cov.groups.length}</span> {t("agentsWord")}
+                            </>
+                          ) : (
+                            <>
+                              {t("coveredBy")}: {cov.groups[0]?.agent.name ?? "—"}
+                            </>
+                          )}
                         </div>
                       </div>
+                      {cov.groups.length > 1 && (
+                        <span className="flex shrink-0 -space-x-1.5 rtl:space-x-reverse">
+                          {cov.groups.slice(0, 3).map((g) => (
+                            <AgentAvatar key={g.agent.id} agent={g.agent} size={22} showStatus={false} className="rounded-full ring-2 ring-surface" />
+                          ))}
+                        </span>
+                      )}
                     </li>
                   );
                 })}

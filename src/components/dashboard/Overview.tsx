@@ -6,16 +6,17 @@ import { AgentAvatar } from "@/components/AgentAvatar";
 import { StatusBadge } from "@/components/ui";
 import { useI18n } from "@/lib/i18n";
 import { useStore } from "@/lib/store";
-import { fmt } from "@/lib/utils";
+import { coverageOf, fmt } from "@/lib/utils";
 
 export function Overview({ go }: { go: (tab: string, filter?: string) => void }) {
   const { t, lang } = useI18n();
   const store = useStore();
   const unassigned = store.clients.filter((c) => !c.agentId).length;
   const away = store.agents.filter((a) => a.status !== "active");
+  // away agents that still have clients nobody backs up
   const awayNoCover = away.filter((a) => {
-    const cover = a.coverAgentId ? store.agentById.get(a.coverAgentId) : undefined;
-    return !cover || cover.status !== "active";
+    const cov = coverageOf(a.id, store);
+    return cov.total > 0 && (cov.uncovered > 0 || !cov.groups.some((g) => g.agent.status === "active"));
   });
   const volume = store.branches.reduce((s, b) => s + b.avgShipmentsPerDay, 0);
   const top = [...store.branches].sort((a, b) => b.avgShipmentsPerDay - a.avgShipmentsPerDay).slice(0, 8);

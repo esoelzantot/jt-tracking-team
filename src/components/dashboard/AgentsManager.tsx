@@ -7,7 +7,7 @@ import { Modal } from "@/components/ui";
 import { useI18n } from "@/lib/i18n";
 import { useStore } from "@/lib/store";
 import type { Agent, AgentStatus } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, coverageOf } from "@/lib/utils";
 import { AgentSelect } from "./AgentSelect";
 import { DistributeModal, type DistributeTarget } from "./DistributeModal";
 import { Picker } from "@/components/Picker";
@@ -105,8 +105,8 @@ export function AgentsManager({ notify }: { notify: (m: string) => void }) {
         {[...store.agents]
           .sort((a, b) => a.name.localeCompare(b.name))
           .map((a) => {
-            const cover = a.coverAgentId ? store.agentById.get(a.coverAgentId) : undefined;
-            const count = store.clients.filter((c) => c.agentId === a.id).length;
+            const cov = coverageOf(a.id, store);
+            const count = cov.total;
             const uncovered = a.status !== "active" ? uncoveredFor(a.id, a.coverAgentId) : [];
             return (
               <div key={a.id} className={cn("card p-4", uncovered.length > 0 && "ring-2 ring-warn/60")}>
@@ -150,14 +150,30 @@ export function AgentsManager({ notify }: { notify: (m: string) => void }) {
                   ))}
                 </div>
                 <div className="mt-3 flex items-center gap-2 text-xs">
-                  <span className="font-bold text-ink-3">{t("coverAgent")}:</span>
-                  {cover ? (
+                  <span className="shrink-0 font-bold text-ink-3">{t("supportShort")}:</span>
+                  {cov.groups.length === 1 ? (
                     <span className="flex min-w-0 items-center gap-1.5 font-bold">
-                      <AgentAvatar agent={cover} size={22} showStatus={false} />
-                      <span className="truncate">{cover.name}</span>
+                      <AgentAvatar agent={cov.groups[0].agent} size={22} showStatus={false} />
+                      <span className="truncate">{cov.groups[0].agent.name}</span>
+                    </span>
+                  ) : cov.groups.length > 1 ? (
+                    <span className="flex min-w-0 items-center gap-1.5 font-bold">
+                      <span className="flex shrink-0 -space-x-1.5 rtl:space-x-reverse">
+                        {cov.groups.slice(0, 4).map((g) => (
+                          <AgentAvatar key={g.agent.id} agent={g.agent} size={22} showStatus={false} className="rounded-full ring-2 ring-surface" />
+                        ))}
+                      </span>
+                      <span className="truncate">
+                        {t("splitAcross")} <span className="ltr-nums">{cov.groups.length}</span> {t("agentsWord")}
+                      </span>
                     </span>
                   ) : (
                     <span className={cn("font-bold", a.status !== "active" ? "text-amber-700" : "text-ink-3")}>—</span>
+                  )}
+                  {a.status !== "active" && count > 0 && uncovered.length === 0 && (
+                    <button onClick={() => setDistribute({ agent: a, status: a.status })} className="ms-auto shrink-0 font-bold text-jt hover:underline">
+                      {t("editDistribution")}
+                    </button>
                   )}
                 </div>
                 {a.status !== "active" && uncovered.length > 0 && (

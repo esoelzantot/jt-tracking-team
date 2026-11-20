@@ -8,7 +8,7 @@ import { AgentAvatar } from "@/components/AgentAvatar";
 import { NoDataState, StatusBadge } from "@/components/ui";
 import { useI18n } from "@/lib/i18n";
 import { useStore } from "@/lib/store";
-import { cn, fmt, normalize } from "@/lib/utils";
+import { cn, coverageOf, fmt, normalize } from "@/lib/utils";
 
 export default function AgentsPage() {
   const { t, lang } = useI18n();
@@ -58,8 +58,9 @@ export default function AgentsPage() {
         {list.map((a, i) => {
           const branches = store.branches.filter((b) => b.agentIds.includes(a.id));
           const primaryCount = store.clients.filter((c) => c.agentId === a.id).length;
-          const cover = a.coverAgentId ? store.agentById.get(a.coverAgentId) : undefined;
+          const cov = coverageOf(a.id, store);
           const away = a.status !== "active";
+          const warn = away && (cov.groups.length === 0 || cov.uncovered > 0);
           return (
             <motion.div
               key={a.id}
@@ -136,15 +137,38 @@ export default function AgentsPage() {
                 <div
                   className={cn(
                     "mt-4 flex items-center gap-2 border-t px-5 py-3 text-xs font-bold",
-                    away && !cover ? "border-amber-200 bg-amber-50 text-amber-800" : "border-line text-ink-3",
+                    warn ? "border-amber-200 bg-amber-50 text-amber-800" : "border-line text-ink-3",
                   )}
                 >
-                  {cover ? (
+                  {cov.groups.length === 1 ? (
                     <>
                       <LifeBuoy className="size-3.5 shrink-0 text-jt" />
-                      <span className="shrink-0">{t("coverAgent")}:</span>
-                      <AgentAvatar agent={cover} size={22} showStatus={false} />
-                      <span className="truncate text-ink">{cover.name}</span>
+                      <span className="shrink-0">{t("supportShort")}:</span>
+                      <AgentAvatar agent={cov.groups[0].agent} size={22} showStatus={false} />
+                      <span className="truncate text-ink">{cov.groups[0].agent.name}</span>
+                      {cov.uncovered > 0 && (
+                        <span className="ltr-nums ms-auto shrink-0 rounded-full bg-amber-100 px-1.5 text-[10px] text-amber-800">
+                          {cov.uncovered} {t("withoutSupport")}
+                        </span>
+                      )}
+                    </>
+                  ) : cov.groups.length > 1 ? (
+                    <>
+                      <LifeBuoy className="size-3.5 shrink-0 text-jt" />
+                      <span className="shrink-0">{t("splitAcross")}</span>
+                      <span className="flex shrink-0 -space-x-1.5 rtl:space-x-reverse">
+                        {cov.groups.slice(0, 3).map((g) => (
+                          <AgentAvatar key={g.agent.id} agent={g.agent} size={22} showStatus={false} className="rounded-full ring-2 ring-surface" />
+                        ))}
+                      </span>
+                      <span className="truncate text-ink">
+                        <span className="ltr-nums">{cov.groups.length}</span> {t("agentsWord")}
+                      </span>
+                      {cov.uncovered > 0 && (
+                        <span className="ltr-nums ms-auto shrink-0 rounded-full bg-amber-100 px-1.5 text-[10px] text-amber-800">
+                          {cov.uncovered} {t("withoutSupport")}
+                        </span>
+                      )}
                     </>
                   ) : (
                     <>

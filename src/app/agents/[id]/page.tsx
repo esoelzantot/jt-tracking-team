@@ -25,7 +25,7 @@ import { CopyButton, EmptyState, StatusBadge } from "@/components/ui";
 import { useI18n } from "@/lib/i18n";
 import { useStore } from "@/lib/store";
 import type { Agent, Client } from "@/lib/types";
-import { cn, hashString, normalize } from "@/lib/utils";
+import { cn, coverageOf, hashString, normalize } from "@/lib/utils";
 
 /** Animated number that counts up from 0. */
 function CountUp({ value }: { value: number }) {
@@ -111,7 +111,13 @@ export default function AgentDetailPage() {
     .filter((c) => !q || normalize(c.name).includes(normalize(q)) || c.code.toLowerCase().includes(q.toLowerCase()))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  const cover = agent?.coverAgentId ? store.agentById.get(agent.coverAgentId) : undefined;
+  const cov = useMemo(() => coverageOf(agentId, store), [agentId, store]);
+  // agents whose clients this agent backs up (per-client support or default cover), with counts
+  const coversFor = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const c of support) if (c.agentId) m.set(c.agentId, (m.get(c.agentId) ?? 0) + 1);
+    return [...m.entries()].map(([id, n]) => ({ agent: store.agentById.get(id), n })).filter((x) => x.agent) as { agent: Agent; n: number }[];
+  }, [support, store.agentById]);
   const Back = dir === "rtl" ? ArrowRight : ArrowLeft;
   const Flow = dir === "rtl" ? ArrowLeft : ArrowRight;
 
@@ -129,7 +135,8 @@ export default function AgentDetailPage() {
     );
 
   const away = agent.status !== "active";
-  const coverOk = cover?.status === "active";
+  const coverOk = cov.groups.some((g) => g.agent.status === "active") && cov.uncovered === 0;
+  const single = cov.groups.length === 1 && cov.uncovered === 0 ? cov.groups[0].agent : null;
   const maxCount = Math.max(1, ...sideBranches.map((b) => branchCounts.get(b.id) ?? 0));
 
   return (
@@ -282,25 +289,69 @@ export default function AgentDetailPage() {
                 {/* connector */}
                 <div className="flex items-center justify-center">
                   <span className="relative flex size-9 items-center justify-center rounded-full bg-jt text-white shadow-md shadow-jt/30">
-                    {cover && <span className="absolute inset-0 animate-ping rounded-full bg-jt/30" style={{ animationDuration: "2.2s" }} />}
+                    {cov.groups.length > 0 && <span className="absolute inset-0 animate-ping rounded-full bg-jt/30" style={{ animationDuration: "2.2s" }} />}
                     <Flow className="relative hidden size-4 sm:block" />
                     <ArrowDown className="relative size-4 sm:hidden" />
                   </span>
                 </div>
 
                 {/* to */}
-                {cover ? (
+                {single ? (
                   <Link
-                    href={`/agents/${encodeURIComponent(cover.id)}`}
+                    href={`/agents/${encodeURIComponent(single.id)}`}
                     className="group flex min-w-0 items-center gap-2.5 rounded-xl bg-jt-50 p-2.5 ring-1 ring-jt/20 transition hover:ring-jt/50"
                   >
-                    <AgentAvatar agent={cover} size={42} />
+                    <AgentAvatar agent={single} size={42} />
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-extrabold group-hover:text-jt">{cover.name}</div>
-                      <div className="ltr-nums text-[11px] font-bold text-ink-3">#{cover.id}</div>
+                      <div className="truncate text-sm font-extrabold group-hover:text-jt">{single.name}</div>
+                      <div className="ltr-nums text-[11px] font-bold text-ink-3">#{single.id}</div>
                     </div>
                     <ArrowUpRight className="size-4 shrink-0 text-jt/60 transition group-hover:text-jt rtl:-scale-x-100" />
                   </Link>
+                ) : cov.groups.length > 0 ? (
+                  <div className="min-w-0 rounded-xl bg-jt-50 p-2.5 ring-1 ring-jt/20">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-extrabold text-jt-700">
+                        {t("splitAcross")} <span className="ltr-nums">{cov.groups.length}</span> {t("agentsWord")}
+                      </span>
+                      <span className="flex -space-x-2 rtl:space-x-reverse">
+                        {cov.groups.slice(0, 4).map((g) => (
+                          <AgentAvatar key={g.agent.id} agent={g.agent} size={22} showStatus={false} className="rounded-full ring-2 ring-jt-50" />
+                        ))}
+                      </span>
+                    </div>
+                    <ul className="space-y-1">
+                      {cov.groups.slice(0, 4).map((g) => (
+                        <li key={g.agent.id}>
+                          <Link
+                            href={`/agents/${encodeURIComponent(g.agent.id)}`}
+                            className="group flex items-center gap-2 rounded-lg px-1 py-0.5 transition hover:bg-surface"
+                          >
+                            <AgentAvatar agent={g.agent} size={26} />
+                            <span className="min-w-0 flex-1 truncate text-xs font-extrabold group-hover:text-jt">{g.agent.name}</span>
+                            <span className="h-1.5 w-12 overflow-hidden rounded-full bg-surface">
+                              <span className="block h-full rounded-full bg-jt" style={{ width: `${(g.count / Math.max(1, cov.total)) * 100}%` }} />
+                            </span>
+                            <span className="ltr-nums min-w-5 text-end text-xs font-black">{g.count}</span>
+                          </Link>
+                        </li>
+                      ))}
+                      {cov.groups.length > 4 && (
+                        <li className="px-1 text-[11px] font-bold text-ink-3">
+                          +<span className="ltr-nums">{cov.groups.length - 4}</span> {t("more")}
+                        </li>
+                      )}
+                      {cov.uncovered > 0 && (
+                        <li className="flex flex-wrap items-center gap-1.5 rounded-lg bg-amber-50 px-1.5 py-1 text-[11px] font-bold text-amber-800 ring-1 ring-amber-200">
+                          <AlertTriangle className="size-3.5" />
+                          <span className="ltr-nums">{cov.uncovered}</span> {t("withoutSupport")}
+                          <Link href="/dashboard?tab=agents" className="ms-auto text-jt hover:underline">
+                            {t("setCover")}
+                          </Link>
+                        </li>
+                      )}
+                    </ul>
+                  </div>
                 ) : (
                   <div className="flex min-w-0 items-center gap-2.5 rounded-xl border border-dashed border-warn/60 bg-amber-50 p-2.5">
                     <span className="flex size-[42px] shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
@@ -316,17 +367,18 @@ export default function AgentDetailPage() {
                 )}
               </div>
 
-              {coveredAgents.length > 0 && (
+              {coversFor.length > 0 && (
                 <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
                   <span className="text-xs font-bold text-ink-3">{t("coversFor")}:</span>
-                  {coveredAgents.map((a) => (
+                  {coversFor.map(({ agent: a, n }) => (
                     <Link
                       key={a.id}
                       href={`/agents/${encodeURIComponent(a.id)}`}
-                      className="flex items-center gap-1.5 rounded-full bg-bg py-0.5 pe-2.5 ps-0.5 text-xs font-bold ring-1 ring-line hover:ring-jt/40"
+                      className="flex items-center gap-1.5 rounded-full bg-bg py-0.5 pe-1 ps-0.5 text-xs font-bold ring-1 ring-line hover:ring-jt/40"
                     >
                       <AgentAvatar agent={a} size={24} showStatus={false} />
                       {a.name}
+                      <span className="ltr-nums rounded-full bg-jt-50 px-1.5 text-[10px] text-jt-700">{n}</span>
                     </Link>
                   ))}
                 </div>

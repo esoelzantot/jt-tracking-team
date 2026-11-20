@@ -49,6 +49,37 @@ export const initials = (name: string) =>
 
 export const fmt = (n: number, locale = "en") => new Intl.NumberFormat(locale === "ar" ? "ar-EG" : "en-US").format(n);
 
+export interface Coverage {
+  /** Support agents handling this agent's clients, most clients first. */
+  groups: { agent: Agent; count: number }[];
+  /** Clients with no support agent at all. */
+  uncovered: number;
+  total: number;
+}
+
+/**
+ * Who backs up an agent's clients. Each client's support agent wins; clients without one
+ * fall back to the agent's default cover agent.
+ */
+export function coverageOf(agentId: string, data: Dataset): Coverage {
+  const byId = new Map(data.agents.map((a) => [a.id, a]));
+  const fallback = byId.get(agentId)?.coverAgentId ?? null;
+  const counts = new Map<string, number>();
+  let uncovered = 0;
+  let total = 0;
+  for (const c of data.clients) {
+    if (c.agentId !== agentId) continue;
+    total++;
+    const sid = c.supportAgentId ?? fallback;
+    if (sid && byId.has(sid)) counts.set(sid, (counts.get(sid) ?? 0) + 1);
+    else uncovered++;
+  }
+  const groups = [...counts.entries()]
+    .map(([id, count]) => ({ agent: byId.get(id)!, count }))
+    .sort((a, b) => b.count - a.count || a.agent.name.localeCompare(b.agent.name));
+  return { groups, uncovered, total };
+}
+
 export interface Ownership {
   primary: Agent | null;
   support: Agent | null;
