@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Building2, LayoutDashboard, Languages, Search, Users } from "lucide-react";
+import { Building2, Search, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -10,13 +10,12 @@ import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export function Header() {
-  const { t, lang, setLang } = useI18n();
+  const { t } = useI18n();
   const path = usePathname();
   const links = [
     { href: "/", label: t("navSearch"), icon: Search },
     { href: "/agents", label: t("navAgents"), icon: Users },
     { href: "/branches", label: t("navBranches"), icon: Building2 },
-    { href: "/dashboard", label: t("navDashboard"), icon: LayoutDashboard },
   ];
   const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 
@@ -53,20 +52,11 @@ export function Header() {
               </Link>
             ))}
           </nav>
-
-          <button
-            onClick={() => setLang(lang === "ar" ? "en" : "ar")}
-            className="btn btn-ghost ms-auto !px-3 md:ms-0"
-            aria-label="Switch language"
-          >
-            <Languages className="size-4" />
-            <span className="text-sm">{lang === "ar" ? "EN" : "عربي"}</span>
-          </button>
         </div>
       </header>
 
       {/* mobile bottom nav */}
-      <nav className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-4 rounded-2xl border border-line bg-surface/95 p-1 shadow-xl backdrop-blur md:hidden">
+      <nav className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-3 rounded-2xl border border-line bg-surface/95 p-1 shadow-xl backdrop-blur md:hidden">
         {links.map((l) => (
           <Link
             key={l.href}

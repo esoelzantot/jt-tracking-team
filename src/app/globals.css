@@ -32,7 +32,7 @@
   --color-surface: var(--surface);
   --color-ok: var(--ok);
   --color-warn: var(--warn);
-  --font-sans: var(--font-cairo), system-ui, sans-serif;
+  --font-sans: var(--font-beiruti), system-ui, sans-serif;
   --shadow-card: 0 1px 2px rgb(27 27 31 / 0.04), 0 8px 24px -8px rgb(27 27 31 / 0.08);
   --shadow-lift: 0 2px 4px rgb(27 27 31 / 0.04), 0 24px 48px -16px rgb(227 34 43 / 0.25);
 }

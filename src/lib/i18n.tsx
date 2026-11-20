@@ -162,10 +162,10 @@ const Ctx = createContext<I18n | null>(null);
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("ar");
 
+  // The interface is Arabic only (no language switcher); clear any old saved choice.
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("jt-hub:lang");
-      if (saved === "en" || saved === "ar") setLangState(saved);
+      localStorage.removeItem("jt-hub:lang");
     } catch {}
   }, []);
 
