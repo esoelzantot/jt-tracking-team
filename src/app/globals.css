@@ -1,26 +1,179 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --jt-red: #e3222b;
+  --jt-red-600: #c8151e;
+  --jt-red-700: #a50f17;
+  --jt-red-50: #fff1f1;
+  --jt-red-100: #ffe0e1;
+  --jt-pink: #ffc9cf;
+  --ink: #1b1b1f;
+  --ink-2: #4a4a55;
+  --ink-3: #8a8a96;
+  --line: #ecebee;
+  --bg: #f7f5f4;
+  --surface: #ffffff;
+  --ok: #17a36b;
+  --warn: #f2a516;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-jt: var(--jt-red);
+  --color-jt-600: var(--jt-red-600);
+  --color-jt-700: var(--jt-red-700);
+  --color-jt-50: var(--jt-red-50);
+  --color-jt-100: var(--jt-red-100);
+  --color-pinky: var(--jt-pink);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --font-sans: var(--font-cairo), system-ui, sans-serif;
+  --shadow-card: 0 1px 2px rgb(27 27 31 / 0.04), 0 8px 24px -8px rgb(27 27 31 / 0.08);
+  --shadow-lift: 0 2px 4px rgb(27 27 31 / 0.04), 0 24px 48px -16px rgb(227 34 43 / 0.25);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  font-family: var(--font-sans);
+  min-height: 100dvh;
+}
+
+::selection {
+  background: var(--jt-red);
+  color: white;
+}
+
+/* The "speed stripes" from the J&T mark, reused as a decorative motif */
+.speed-stripes {
+  position: relative;
+  isolation: isolate;
+}
+.speed-stripes::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(-12deg, transparent 0 18px, rgb(255 255 255 / 0.07) 18px 20px);
+}
+
+.dot-grid {
+  background-image: radial-gradient(rgb(27 27 31 / 0.07) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow-card);
+}
+
+.input {
+  width: 100%;
+  border-radius: 0.85rem;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 0.6rem 0.85rem;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.input:focus {
+  border-color: var(--jt-red);
+  box-shadow: 0 0 0 4px rgb(227 34 43 / 0.12);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: 0.85rem;
+  padding: 0.55rem 1rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: transform 0.12s, background 0.15s, box-shadow 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.btn-primary {
+  background: var(--jt-red);
+  color: white;
+  box-shadow: 0 6px 16px -6px rgb(227 34 43 / 0.6);
+}
+.btn-primary:hover {
+  background: var(--jt-red-600);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--ink-2);
+}
+.btn-ghost:hover {
+  background: rgb(27 27 31 / 0.05);
+  color: var(--ink);
+}
+.btn-soft {
+  background: var(--jt-red-50);
+  color: var(--jt-red-600);
+}
+.btn-soft:hover {
+  background: var(--jt-red-100);
+}
+
+.label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ink-2);
+  margin-bottom: 0.3rem;
+}
+
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(27 27 31 / 0.15) transparent;
+}
+
+/* Latin codes/IDs stay LTR inside Arabic text */
+.ltr-nums {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+}
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+@keyframes dash {
+  from { transform: translateX(-120%); }
+  to { transform: translateX(260%); }
+}
+.animate-dash {
+  animation: dash 2.4s cubic-bezier(.6,0,.2,1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float, .animate-dash { animation: none; }
 }

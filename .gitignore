@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# customer data — never commit
+*.xlsx
+!.env.example
+
+# local Claude tooling
+.claude/
