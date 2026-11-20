@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { I18nProvider } from "@/lib/i18n";
 import { StoreProvider } from "@/lib/store";
@@ -35,7 +36,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <I18nProvider>
           <StoreProvider>
             <Header />
-            <main className="mx-auto max-w-7xl px-4 pb-28 pt-6 md:pb-12">{children}</main>
+            <main className="mx-auto min-h-[calc(100dvh-14rem)] max-w-7xl px-4 pb-6 pt-6">{children}</main>
+            <Footer />
           </StoreProvider>
         </I18nProvider>
       </body>
