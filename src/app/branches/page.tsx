@@ -5,6 +5,7 @@ import { ArrowDownWideNarrow, ChevronDown, MapPin, Package, Search, Users } from
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AgentAvatar } from "@/components/AgentAvatar";
+import { Picker } from "@/components/Picker";
 import { NoDataState, StatusBadge } from "@/components/ui";
 import { useI18n } from "@/lib/i18n";
 import { useStore } from "@/lib/store";
@@ -50,14 +51,27 @@ export default function BranchesPage() {
             <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-ink-3" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={`${t("search")}…`} className="input ps-9" />
           </div>
-          <label className="relative">
-            <ArrowDownWideNarrow className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-ink-3" />
-            <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="input appearance-none !w-auto pe-4 ps-9 font-bold">
-              <option value="volume">{t("avgPerDay")}</option>
-              <option value="customers">{t("totalCustomers")}</option>
-              <option value="name">A–Z</option>
-            </select>
-          </label>
+          <div className="w-52 shrink-0">
+            <Picker
+              value={sort}
+              onChange={(v) => v && setSort(v as Sort)}
+              searchable={false}
+              minWidth={220}
+              options={[
+                { value: "volume", label: t("avgPerDay"), icon: Package },
+                { value: "customers", label: t("totalCustomers"), icon: Users },
+                { value: "name", label: "A–Z", icon: ArrowDownWideNarrow },
+              ].map((o) => ({
+                value: o.value,
+                label: o.label,
+                leading: (
+                  <span className="flex size-7 items-center justify-center rounded-lg bg-jt-50 text-jt">
+                    <o.icon className="size-3.5" />
+                  </span>
+                ),
+              }))}
+            />
+          </div>
         </div>
       </div>
 

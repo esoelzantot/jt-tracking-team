@@ -9,6 +9,8 @@ import { useStore } from "@/lib/store";
 import type { Agent, AgentStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AgentSelect } from "./AgentSelect";
+import { DistributeModal, type DistributeTarget } from "./DistributeModal";
+import { Picker } from "@/components/Picker";
 
 const blank: Agent = { id: "", name: "", gender: "female", hijab: true, status: "active", coverAgentId: null, phone: "", email: "", area: "" };
 
@@ -19,8 +21,7 @@ export function AgentsManager({ notify }: { notify: (m: string) => void }) {
   const [busy, setBusy] = useState(false);
   const areas = [...new Set(store.branches.map((b) => b.area).filter(Boolean))];
 
-  const [coverFor, setCoverFor] = useState<{ agent: Agent; status: AgentStatus } | null>(null);
-  const [coverPick, setCoverPick] = useState<string | null>(null);
+  const [distribute, setDistribute] = useState<DistributeTarget | null>(null);
 
   /** Clients of this agent that would have nobody available to handle them. */
   const uncoveredFor = (agentId: string, coverId: string | null | undefined) => {
@@ -30,31 +31,17 @@ export function AgentsManager({ notify }: { notify: (m: string) => void }) {
       (c) => c.agentId === agentId && !(c.supportAgentId && store.agentById.get(c.supportAgentId)?.status === "active"),
     );
   };
+  const hasClients = (agentId: string) => store.clients.some((c) => c.agentId === agentId);
 
   const setStatus = async (a: Agent, status: AgentStatus) => {
-    if (status !== "active" && uncoveredFor(a.id, a.coverAgentId).length) {
-      setCoverPick(null);
-      setCoverFor({ agent: a, status });
+    if (status === a.status) return;
+    // Going away → distribute the agent's clients over other agents first.
+    if (status !== "active" && hasClients(a.id)) {
+      setDistribute({ agent: a, status });
       return;
     }
     await store.repo.upsert("agents", { ...a, status });
     notify(t("saved"));
-  };
-
-  const confirmCover = async (withCover: boolean) => {
-    if (!coverFor) return;
-    setBusy(true);
-    try {
-      await store.repo.upsert("agents", {
-        ...coverFor.agent,
-        status: coverFor.status,
-        coverAgentId: withCover ? coverPick : coverFor.agent.coverAgentId,
-      });
-      notify(t("saved"));
-      setCoverFor(null);
-    } finally {
-      setBusy(false);
-    }
   };
 
   const save = async () => {
@@ -80,10 +67,10 @@ export function AgentsManager({ notify }: { notify: (m: string) => void }) {
       }
       notify(t("saved"));
       setEditing(null);
-      // Going away with accounts nobody covers → ask for a cover agent right away.
-      if (next.status !== "active" && uncoveredFor(originalId ?? id, next.coverAgentId).length) {
-        setCoverPick(null);
-        setCoverFor({ agent: next, status: next.status });
+      // Just went away → open the distribution of their clients.
+      const before = originalId ? store.agentById.get(originalId)?.status : "active";
+      if (next.status !== "active" && before === "active" && hasClients(originalId ?? id)) {
+        setDistribute({ agent: next, status: next.status });
       }
     } catch (e) {
       notify(`${t("error")}: ${(e as Error).message}`);
@@ -175,10 +162,7 @@ export function AgentsManager({ notify }: { notify: (m: string) => void }) {
                 </div>
                 {a.status !== "active" && uncovered.length > 0 && (
                   <button
-                    onClick={() => {
-                      setCoverPick(null);
-                      setCoverFor({ agent: a, status: a.status });
-                    }}
+                    onClick={() => setDistribute({ agent: a, status: a.status })}
                     className="mt-3 flex w-full items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-start text-xs font-bold text-amber-800 ring-1 ring-amber-200 transition hover:bg-amber-100"
                   >
                     <AlertTriangle className="size-4 shrink-0" />
@@ -215,10 +199,17 @@ export function AgentsManager({ notify }: { notify: (m: string) => void }) {
               <div className="grid flex-1 grid-cols-2 gap-2">
                 <div>
                   <label className="label">{t("gender")}</label>
-                  <select className="input" value={editing.gender} onChange={(e) => setEditing({ ...editing, gender: e.target.value as Agent["gender"] })}>
-                    <option value="female">{t("female")}</option>
-                    <option value="male">{t("male")}</option>
-                  </select>
+                  <Picker
+                    value={editing.gender}
+                    onChange={(v) => v && setEditing({ ...editing, gender: v as Agent["gender"] })}
+                    searchable={false}
+                    minWidth={190}
+                    options={(["female", "male"] as const).map((g) => ({
+                      value: g,
+                      label: t(g),
+                      leading: <AgentAvatar agent={{ name: t(g), gender: g, status: "active" }} size={28} showStatus={false} />,
+                    }))}
+                  />
                 </div>
               </div>
             </div>
@@ -250,11 +241,27 @@ export function AgentsManager({ notify }: { notify: (m: string) => void }) {
               </div>
               <div>
                 <label className="label">{t("status")}</label>
-                <select className="input" value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value as AgentStatus })}>
-                  <option value="active">{t("active")}</option>
-                  <option value="leave">{t("onLeave")}</option>
-                  <option value="off">{t("off")}</option>
-                </select>
+                <Picker
+                  value={editing.status}
+                  onChange={(v) => v && setEditing({ ...editing, status: v as AgentStatus })}
+                  searchable={false}
+                  minWidth={200}
+                  options={(
+                    [
+                      ["active", t("active"), "bg-ok"],
+                      ["leave", t("onLeave"), "bg-warn"],
+                      ["off", t("off"), "bg-ink-3"],
+                    ] as const
+                  ).map(([v, label, dot]) => ({
+                    value: v,
+                    label,
+                    leading: (
+                      <span className="flex size-7 items-center justify-center rounded-full bg-bg">
+                        <span className={cn("size-2.5 rounded-full", dot)} />
+                      </span>
+                    ),
+                  }))}
+                />
               </div>
               <div className="sm:col-span-2">
                 <label className="label">{t("coverAgent")}</label>
@@ -286,66 +293,7 @@ export function AgentsManager({ notify }: { notify: (m: string) => void }) {
         )}
       </Modal>
 
-      <Modal
-        open={!!coverFor}
-        onClose={() => setCoverFor(null)}
-        title={t("coverageTitle")}
-        footer={
-          <>
-            <button onClick={() => confirmCover(false)} disabled={busy} className="btn btn-ghost">
-              {t("skipForNow")}
-            </button>
-            <button onClick={() => confirmCover(true)} disabled={busy || !coverPick} className="btn btn-primary">
-              {t("setCover")}
-            </button>
-          </>
-        }
-      >
-        {coverFor &&
-          (() => {
-            const affected = uncoveredFor(coverFor.agent.id, null);
-            const branchAgents = new Set(
-              store.branches.filter((b) => b.agentIds.includes(coverFor.agent.id)).flatMap((b) => b.agentIds),
-            );
-            const pick = coverPick ? store.agentById.get(coverPick) : undefined;
-            return (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 rounded-2xl bg-bg p-3">
-                  <AgentAvatar agent={{ ...coverFor.agent, status: coverFor.status }} size={52} />
-                  <div className="min-w-0">
-                    <div className="truncate font-extrabold">{coverFor.agent.name}</div>
-                    <div className="text-xs font-bold text-amber-700">
-                      {coverFor.status === "leave" ? t("onLeave") : t("off")}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-sm font-bold text-amber-800 ring-1 ring-amber-200">
-                  <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-                  <span>
-                    <span className="ltr-nums">{affected.length}</span> {t("coverageBody")}
-                  </span>
-                </div>
-                <div className="scroll-thin flex max-h-32 flex-wrap gap-1.5 overflow-y-auto">
-                  {affected.map((c) => (
-                    <span key={c.id} className="rounded-lg bg-surface px-2 py-1 text-xs font-bold ring-1 ring-line">
-                      {c.name}
-                    </span>
-                  ))}
-                </div>
-                <div>
-                  <label className="label">{t("coverAgent")}</label>
-                  <AgentSelect
-                    value={coverPick}
-                    onChange={setCoverPick}
-                    exclude={coverFor.agent.id}
-                    preferIds={[...branchAgents].filter((id) => store.agentById.get(id)?.status === "active")}
-                  />
-                  {pick && pick.status !== "active" && <p className="mt-1 text-xs font-bold text-amber-700">{t("coverUnavailable")}</p>}
-                </div>
-              </div>
-            );
-          })()}
-      </Modal>
+      <DistributeModal target={distribute} onClose={() => setDistribute(null)} notify={notify} />
     </div>
   );
 }

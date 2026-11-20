@@ -1,8 +1,9 @@
 "use client";
 
-import { Pencil, Plus, Search, Trash2, UserX } from "lucide-react";
+import { Building2, Pencil, Plus, Search, Trash2, UserX } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AgentAvatar } from "@/components/AgentAvatar";
+import { Picker } from "@/components/Picker";
 import { Modal } from "@/components/ui";
 import { useI18n } from "@/lib/i18n";
 import { buildIndex } from "@/lib/search";
@@ -37,6 +38,16 @@ export function ClientsManager({ notify, initialFilter }: { notify: (m: string) 
   }, [q, search, store.clients, branch, onlyUnassigned]);
   const shown = list.slice(0, page * PAGE);
   const branchesSorted = [...store.branches].sort((a, b) => a.name.localeCompare(b.name));
+  const branchOptions = branchesSorted.map((b) => ({
+    value: b.id,
+    label: b.name,
+    hint: b.area || undefined,
+    leading: (
+      <span className="flex size-7 items-center justify-center rounded-lg bg-jt-50 text-jt">
+        <Building2 className="size-3.5" />
+      </span>
+    ),
+  }));
 
   const save = async () => {
     if (!editing) return;
@@ -82,14 +93,19 @@ export function ClientsManager({ notify, initialFilter }: { notify: (m: string) 
           <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-ink-3" />
           <input value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder={t("searchPlaceholder")} className="input ps-9" />
         </div>
-        <select value={branch} onChange={(e) => { setBranch(e.target.value); setPage(1); }} className="input lg:!w-56">
-          <option value="all">{t("pickupBranch")}: {t("filterAll")}</option>
-          {branchesSorted.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.name}
-            </option>
-          ))}
-        </select>
+        <div className="lg:w-64">
+          <Picker
+            value={branch === "all" ? null : branch}
+            onChange={(v) => {
+              setBranch(v ?? "all");
+              setPage(1);
+            }}
+            options={branchOptions}
+            noneLabel={`${t("pickupBranch")}: ${t("filterAll")}`}
+            searchable
+            searchPlaceholder={t("searchBranches")}
+          />
+        </div>
         <button onClick={() => setOnlyUnassigned((v) => !v)} className={cn("btn", onlyUnassigned ? "btn-primary" : "bg-surface text-ink-2 ring-1 ring-line")}>
           <UserX className="size-4" />
           {t("needsAssignment")}
@@ -105,11 +121,21 @@ export function ClientsManager({ notify, initialFilter }: { notify: (m: string) 
           <span className="text-sm font-bold">
             <span className="ltr-nums">{sel.size}</span> {t("selected")}
           </span>
-          <select value={bulkField} onChange={(e) => setBulkField(e.target.value as typeof bulkField)} className="input !w-auto">
-            <option value="agentId">{t("accountManager")}</option>
-            <option value="supportAgentId">{t("supportAgent")}</option>
-          </select>
-          <AgentSelect value={bulkAgent} onChange={setBulkAgent} className="input sm:!w-72" />
+          <div className="sm:w-48">
+            <Picker
+              value={bulkField}
+              onChange={(v) => v && setBulkField(v as typeof bulkField)}
+              options={[
+                { value: "agentId", label: t("accountManager") },
+                { value: "supportAgentId", label: t("supportAgent") },
+              ]}
+              searchable={false}
+              minWidth={200}
+            />
+          </div>
+          <div className="sm:w-80">
+            <AgentSelect value={bulkAgent} onChange={setBulkAgent} />
+          </div>
           <button onClick={bulk} disabled={busy} className="btn btn-primary">
             {t("assign")}
           </button>
@@ -232,14 +258,14 @@ export function ClientsManager({ notify, initialFilter }: { notify: (m: string) 
             </div>
             <div className="sm:col-span-2">
               <label className="label">{t("pickupBranch")}</label>
-              <select className="input" value={editing.branchId ?? ""} onChange={(e) => setEditing({ ...editing, branchId: e.target.value || null })}>
-                <option value="">{t("none")}</option>
-                {branchesSorted.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
+              <Picker
+                value={editing.branchId}
+                onChange={(v) => setEditing({ ...editing, branchId: v })}
+                options={branchOptions}
+                noneLabel={t("none")}
+                searchable
+                searchPlaceholder={t("searchBranches")}
+              />
             </div>
             <div>
               <label className="label">{t("accountManager")}</label>
