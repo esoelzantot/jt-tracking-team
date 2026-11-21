@@ -9,7 +9,7 @@ interface Indexed {
   code: string;
 }
 
-/** J&T client codes look like J + 10 digits (J0086000142). */
+/** J&T client codes look like J + 10 digits (J0086XXXXXX). */
 const FULL_CODE_DIGITS = 10;
 
 export type QueryKind = "code" | "name";
