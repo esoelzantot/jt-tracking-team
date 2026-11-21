@@ -5,9 +5,10 @@ import { ChevronLeft, ChevronRight, Clock, Search, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { ClientProfileCard } from "@/components/ClientProfileCard";
+import { NoShipperFound } from "@/components/NoShipperFound";
 import { NoDataState, Rabbit } from "@/components/ui";
 import { useI18n } from "@/lib/i18n";
-import { buildIndex } from "@/lib/search";
+import { buildIndex, queryKind } from "@/lib/search";
 import { useStore } from "@/lib/store";
 import type { Client } from "@/lib/types";
 import { cn, coverageOf, fmt, resolveOwnership } from "@/lib/utils";
@@ -167,19 +168,14 @@ export default function SearchPage() {
       ) : !hasData ? (
         <NoDataState />
       ) : q && results.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="card mx-auto flex max-w-md flex-col items-center gap-2 px-6 py-12 text-center"
-        >
-          <Rabbit size={96} float />
-          <div className="mt-2 text-lg font-extrabold">{t("noResults")}</div>
-          <div className="text-sm text-ink-2">{t("noResultsHint")}</div>
-          <button onClick={() => setQ("")} className="btn btn-soft mt-3">
-            <X className="size-4" />
-            {t("clearSearch")}
-          </button>
-        </motion.div>
+        <NoShipperFound
+          query={q.trim()}
+          kind={queryKind(q)}
+          onClear={() => {
+            setQ("");
+            inputRef.current?.focus();
+          }}
+        />
       ) : q ? (
         <div className="grid items-start gap-4 lg:grid-cols-[380px_1fr]">
           {/* results */}
