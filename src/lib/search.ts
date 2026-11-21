@@ -5,7 +5,7 @@ import { normalize } from "./utils";
 interface Indexed {
   c: Client;
   name: string;
-  /** lower-case code, e.g. "j0086000142" */
+  /** lower-case code, e.g. "j0086xxxxxx" */
   code: string;
 }
 
