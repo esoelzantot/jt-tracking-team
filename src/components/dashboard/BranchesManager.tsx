@@ -64,25 +64,43 @@ export function BranchesManager({ notify }: { notify: (m: string) => void }) {
       </div>
       <div className="card overflow-hidden">
         <div className="scroll-thin overflow-x-auto">
-          <table className="w-full min-w-[720px] text-sm">
-            <thead className="bg-bg text-xs font-extrabold uppercase text-ink-3">
+          <table className="w-full min-w-[820px] table-fixed border-separate border-spacing-0 text-sm">
+            <colgroup>
+              <col className="w-[26%]" />
+              <col className="w-[17%]" />
+              <col className="w-[14%]" />
+              <col className="w-[13%]" />
+              <col className="w-[18%]" />
+              <col className="w-24" />
+            </colgroup>
+            <thead>
               <tr>
-                <th className="px-3 py-3 text-start">{t("branchName")}</th>
-                <th className="px-3 py-3 text-start">{t("area")}</th>
-                <th className="px-3 py-3 text-start">{t("avgPerDay")}</th>
-                <th className="px-3 py-3 text-start">{t("totalCustomers")}</th>
-                <th className="px-3 py-3 text-start">{t("agents")}</th>
-                <th className="w-24" />
+                <th className="border-b border-line bg-bg px-4 py-3 text-start text-xs font-extrabold whitespace-nowrap text-ink-3">{t("branchName")}</th>
+                <th className="border-b border-line bg-bg px-4 py-3 text-start text-xs font-extrabold whitespace-nowrap text-ink-3">{t("area")}</th>
+                <th className="border-b border-line bg-bg px-4 py-3 text-start text-xs font-extrabold whitespace-nowrap text-ink-3 !text-center">{t("avgPerDay")}</th>
+                <th className="border-b border-line bg-bg px-4 py-3 text-start text-xs font-extrabold whitespace-nowrap text-ink-3 !text-center">{t("totalCustomers")}</th>
+                <th className="border-b border-line bg-bg px-4 py-3 text-start text-xs font-extrabold whitespace-nowrap text-ink-3">{t("agents")}</th>
+                <th className="border-b border-line bg-bg px-4 py-3 text-start text-xs font-extrabold whitespace-nowrap text-ink-3" aria-label="Actions" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-line">
+            <tbody className="[&_tr:last-child_td]:border-b-0">
               {list.map((b) => (
-                <tr key={b.id} className="hover:bg-bg/70">
-                  <td className="px-3 py-2.5 font-bold">{b.name}</td>
-                  <td className="px-3 py-2.5 text-ink-2">{b.area || "—"}</td>
-                  <td className="ltr-nums px-3 py-2.5">{fmt(b.avgShipmentsPerDay, lang)}</td>
-                  <td className="ltr-nums px-3 py-2.5">{b.totalCustomers}</td>
-                  <td className="px-3 py-2.5">
+                <tr key={b.id} className="transition-colors hover:bg-bg/70">
+                  <td className="border-b border-line px-4 py-3 text-start align-middle">
+                    <span dir="ltr" className="inline-block max-w-full truncate align-middle font-bold" title={b.name}>
+                      {b.name}
+                    </span>
+                  </td>
+                  <td className="border-b border-line px-4 py-3 text-start align-middle">
+                    <span className="block truncate font-semibold text-ink-2">{b.area || "—"}</span>
+                  </td>
+                  <td className="border-b border-line px-4 py-3 text-start align-middle !text-center">
+                    <span className="ltr-nums inline-block font-bold">{fmt(b.avgShipmentsPerDay, lang)}</span>
+                  </td>
+                  <td className="border-b border-line px-4 py-3 text-start align-middle !text-center">
+                    <span className="ltr-nums inline-block font-bold">{fmt(b.totalCustomers, lang)}</span>
+                  </td>
+                  <td className="border-b border-line px-4 py-3 text-start align-middle">
                     <div className="flex -space-x-2 rtl:space-x-reverse">
                       {b.agentIds.map((id) => store.agentById.get(id)).filter(Boolean).map((a) => (
                         <AgentAvatar key={a!.id} agent={a!} size={28} showStatus={false} className="rounded-full ring-2 ring-white" />
@@ -90,7 +108,7 @@ export function BranchesManager({ notify }: { notify: (m: string) => void }) {
                       {!b.agentIds.length && <span className="text-xs font-bold text-amber-700">{t("noAgent")}</span>}
                     </div>
                   </td>
-                  <td className="px-3 py-2.5">
+                  <td className="border-b border-line px-4 py-3 text-start align-middle">
                     <div className="flex justify-end gap-1">
                       <button onClick={() => setEditing({ ...b })} className="btn btn-ghost !p-2" aria-label={t("edit")}>
                         <Pencil className="size-4" />

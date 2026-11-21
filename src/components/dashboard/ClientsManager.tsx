@@ -147,65 +147,97 @@ export function ClientsManager({ notify, initialFilter }: { notify: (m: string) 
 
       <div className="card overflow-hidden">
         <div className="scroll-thin overflow-x-auto">
-          <table className="w-full min-w-[760px] text-sm">
-            <thead className="bg-bg text-start text-xs font-extrabold uppercase text-ink-3">
+          <table className="w-full min-w-[880px] table-fixed border-separate border-spacing-0 text-sm">
+            <colgroup>
+              <col className="w-12" />
+              <col className="w-[25%]" />
+              <col className="w-[15%]" />
+              <col className="w-[16%]" />
+              <col className="w-[19%]" />
+              <col className="w-[17%]" />
+              <col className="w-24" />
+            </colgroup>
+            <thead>
               <tr>
-                <th className="w-10 px-3 py-3">
+                <th className="border-b border-line bg-bg px-4 py-3 text-start text-xs font-extrabold whitespace-nowrap text-ink-3 !text-center">
                   <input
                     type="checkbox"
-                    className="accent-jt"
+                    className="accent-jt align-middle"
                     checked={allShownSelected}
                     onChange={() => setSel(allShownSelected ? new Set() : new Set(shown.map((c) => c.id)))}
                     aria-label="Select all"
                   />
                 </th>
-                <th className="px-3 py-3 text-start">{t("clientName")}</th>
-                <th className="px-3 py-3 text-start">{t("clientCode")}</th>
-                <th className="px-3 py-3 text-start">{t("pickupBranch")}</th>
-                <th className="px-3 py-3 text-start">{t("accountManager")}</th>
-                <th className="px-3 py-3 text-start">{t("supportAgent")}</th>
-                <th className="w-24 px-3 py-3" />
+                <th className="border-b border-line bg-bg px-4 py-3 text-start text-xs font-extrabold whitespace-nowrap text-ink-3">{t("clientName")}</th>
+                <th className="border-b border-line bg-bg px-4 py-3 text-start text-xs font-extrabold whitespace-nowrap text-ink-3">{t("clientCode")}</th>
+                <th className="border-b border-line bg-bg px-4 py-3 text-start text-xs font-extrabold whitespace-nowrap text-ink-3">{t("pickupBranch")}</th>
+                <th className="border-b border-line bg-bg px-4 py-3 text-start text-xs font-extrabold whitespace-nowrap text-ink-3">{t("accountManager")}</th>
+                <th className="border-b border-line bg-bg px-4 py-3 text-start text-xs font-extrabold whitespace-nowrap text-ink-3">{t("supportAgent")}</th>
+                <th className="border-b border-line bg-bg px-4 py-3 text-start text-xs font-extrabold whitespace-nowrap text-ink-3" aria-label="Actions" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-line">
+            <tbody className="[&_tr:last-child_td]:border-b-0">
               {shown.map((c) => {
                 const a = c.agentId ? store.agentById.get(c.agentId) : undefined;
                 const s = c.supportAgentId ? store.agentById.get(c.supportAgentId) : undefined;
+                const branchName = c.branchId ? store.branchById.get(c.branchId)?.name : undefined;
                 return (
-                  <tr key={c.id} className={cn("transition hover:bg-bg/70", sel.has(c.id) && "bg-jt-50/60")}>
-                    <td className="px-3 py-2.5">
+                  <tr key={c.id} className={cn("transition-colors hover:bg-bg/70", sel.has(c.id) && "bg-jt-50/60")}>
+                    <td className="border-b border-line px-4 py-3 text-start align-middle !text-center">
                       <input
                         type="checkbox"
-                        className="accent-jt"
+                        className="accent-jt align-middle"
                         checked={sel.has(c.id)}
                         onChange={() => setSel((p) => { const n = new Set(p); if (n.has(c.id)) n.delete(c.id); else n.add(c.id); return n; })}
-                        aria-label={`Select ${c.name}`}
+                        aria-label={"Select " + c.name}
                       />
                     </td>
-                    <td className="max-w-[220px] truncate px-3 py-2.5 font-bold">{c.name}</td>
-                    <td className="ltr-nums px-3 py-2.5 text-ink-2">{c.code}</td>
-                    <td className="px-3 py-2.5 text-ink-2">{c.branchId ? store.branchById.get(c.branchId)?.name : "—"}</td>
-                    <td className="px-3 py-2.5">
-                      {a ? (
-                        <span className="flex items-center gap-2">
-                          <AgentAvatar agent={a} size={26} />
-                          <span className="max-w-[140px] truncate">{a.name}</span>
-                        </span>
-                      ) : (
-                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">{t("needsAssignment")}</span>
-                      )}
+                    <td className="border-b border-line px-4 py-3 text-start align-middle">
+                      <span dir="auto" className="inline-block max-w-full truncate align-middle font-bold" title={c.name}>
+                        {c.name || "—"}
+                      </span>
                     </td>
-                    <td className="px-3 py-2.5">
-                      {s ? (
-                        <span className="flex items-center gap-2">
-                          <AgentAvatar agent={s} size={26} />
-                          <span className="max-w-[140px] truncate">{s.name}</span>
+                    <td className="border-b border-line px-4 py-3 text-start align-middle">
+                      <span dir="ltr" className="ltr-nums inline-block rounded-md bg-bg px-2 py-0.5 text-[13px] font-bold text-ink-2">
+                        {c.code}
+                      </span>
+                    </td>
+                    <td className="border-b border-line px-4 py-3 text-start align-middle">
+                      {branchName ? (
+                        <span dir="ltr" className="inline-block max-w-full truncate align-middle font-semibold text-ink-2" title={branchName}>
+                          {branchName}
                         </span>
                       ) : (
                         <span className="text-ink-3">—</span>
                       )}
                     </td>
-                    <td className="px-3 py-2.5">
+                    <td className="border-b border-line px-4 py-3 text-start align-middle">
+                      {a ? (
+                        <span className="flex min-w-0 items-center gap-2">
+                          <AgentAvatar agent={a} size={28} />
+                          <span dir="auto" className="min-w-0 truncate font-semibold" title={a.name}>
+                            {a.name}
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex whitespace-nowrap rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-700">
+                          {t("needsAssignment")}
+                        </span>
+                      )}
+                    </td>
+                    <td className="border-b border-line px-4 py-3 text-start align-middle">
+                      {s ? (
+                        <span className="flex min-w-0 items-center gap-2">
+                          <AgentAvatar agent={s} size={28} />
+                          <span dir="auto" className="min-w-0 truncate font-semibold" title={s.name}>
+                            {s.name}
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="text-ink-3">—</span>
+                      )}
+                    </td>
+                    <td className="border-b border-line px-4 py-3 text-start align-middle">
                       <div className="flex justify-end gap-1">
                         <button onClick={() => { setEditing({ ...c }); setIsNew(false); }} className="btn btn-ghost !p-2" aria-label={t("edit")}>
                           <Pencil className="size-4" />
